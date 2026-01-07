@@ -22,7 +22,9 @@ def create_new_case(
     db: Session = Depends(get_db),
     user=Depends(require_role(["admin", "manager"]))
 ):
-    return create_case(db, payload)
+    # Pass generic user identifier if dict, or username if object
+    username = user.get("sub") if isinstance(user, dict) else user.username 
+    return create_case(db, payload, performed_by=username)
 
 
 @router.get("/")

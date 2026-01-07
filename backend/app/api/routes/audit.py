@@ -7,6 +7,8 @@ router = APIRouter(prefix="/audit", tags=["Audit Logs"])
 
 @router.get("/")
 def get_audit_logs(
-    user=Depends(require_role(["admin"]))
+    db: Session = Depends(get_db),
+    user=Depends(require_role(["admin", "manager", "analyst"]))
 ):
-    return {"message": "Audit logs retrieval", "user": user["sub"]}
+    from app.models.audit import AuditLog
+    return db.query(AuditLog).all()

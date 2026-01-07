@@ -12,7 +12,7 @@ def auto_assign_dca(db: Session):
     return random.choice(dcas).id
 
 
-def create_case(db: Session, data: dict):
+def create_case(db: Session, data: dict, performed_by: str = "System"):
     assigned_dca_id = auto_assign_dca(db)
 
     priority, recovery_probability = calculate_priority(
@@ -39,6 +39,17 @@ def create_case(db: Session, data: dict):
     )
 
     db.add(case)
+    
+    # Auto-log audit
+    from app.models.audit import AuditLog
+    audit = AuditLog(
+        entity="Case",
+        entity_id=case.case_id,
+        action=f"Case Created (Priority: {priority})",
+        performed_by=performed_by
+    )
+    db.add(audit)
+
     db.commit()
     db.refresh(case)
     return case
